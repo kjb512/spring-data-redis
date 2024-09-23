@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -126,34 +127,25 @@ public class RedisTemplate<K, V> extends RedisAccessor implements RedisOperation
 
 	@Override
 	public void afterPropertiesSet() {
-
 		super.afterPropertiesSet();
 
-		if (defaultSerializer == null) {
-
-			defaultSerializer = new JdkSerializationRedisSerializer(
-					classLoader != null ? classLoader : this.getClass().getClassLoader());
-		}
+		defaultSerializer = Objects.requireNonNullElseGet(
+				defaultSerializer,
+				() -> new JdkSerializationRedisSerializer(
+						Objects.requireNonNullElse(classLoader, getClass().getClassLoader()))
+		);
 
 		if (enableDefaultSerializer) {
-
-			if (keySerializer == null) {
-				keySerializer = defaultSerializer;
-			}
-			if (valueSerializer == null) {
-				valueSerializer = defaultSerializer;
-			}
-			if (hashKeySerializer == null) {
-				hashKeySerializer = defaultSerializer;
-			}
-			if (hashValueSerializer == null) {
-				hashValueSerializer = defaultSerializer;
-			}
+			keySerializer = Objects.requireNonNullElse(keySerializer, defaultSerializer);
+			valueSerializer = Objects.requireNonNullElse(valueSerializer, defaultSerializer);
+			hashKeySerializer = Objects.requireNonNullElse(hashKeySerializer, defaultSerializer);
+			hashValueSerializer = Objects.requireNonNullElse(hashValueSerializer, defaultSerializer);
 		}
 
-		if (scriptExecutor == null) {
-			this.scriptExecutor = new DefaultScriptExecutor<>(this);
-		}
+		scriptExecutor = Objects.requireNonNullElseGet(
+				scriptExecutor,
+				() -> new DefaultScriptExecutor<>(this)
+		);
 
 		initialized = true;
 	}
